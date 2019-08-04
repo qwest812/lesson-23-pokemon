@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<pre>
+    Работа с https://pokeapi.co/
+
+Реализовать
+1. При входе на страницу пользователь должен выдеть список из 10 покемонов с краткой информацией
+2. При клике на покемон список должен пропасть, при этом подробная ифнормация по покемону должна отобразиться
+3. При обновлении страницы подробная информация по новости должна остаться
+4. При клике на кнопку назад подробная информация пропадает и снова видно список покемонов
+5. Покрыть тестами
+Для выполнения пункта 3, обычно используються query параметры в url. Но в чистом виде изменения query параметров приводят к перезагрузке страницы.
+По этому желательно использовать хеш
+</pre>
+
+<script>
+    'use strict';
+    // var listUrlPok = [];
+    // var listNamePok = [];
+    var div = document.createElement('div');
+    var a = document.createElement('a');
+    var body = (document.getElementsByTagName('body'))[0];
+    var link;
+
+
+
+    if (getJsonFromUrl().id === undefined) {
+        allPokemon();
+    } else {
+        PokemonById(getJsonFromUrl().id);
+    }
+
+
+    // var id = '';
+    function allPokemon() {
+        return fetch('https://pokeapi.co/api/v2/pokemon/', {method: 'GET'})
+                .then(function (data) {
+                    return data.json();
+                }).then(function (data) {
+                   console.log(data);
+                    return data.results;
+                }).then(function (data) {
+                    createList(data);
+                    return data;
+                }).then(function (data) {
+                    addClick(data);
+                })
+    }
+    function createList(data) {
+//        console.log(body);
+
+        var div_container = div.cloneNode(true);
+        body.appendChild(div);
+        data.forEach(function (val, id) {
+            var a_clone = a.cloneNode(true);
+            var div_clone = div.cloneNode(true);
+//            console.log(val);
+            id = Number(id) + 1;
+//            console.log(id);
+            a_clone.href = '1.html?id=' + id;
+            a_clone.innerText = '#' + id + ': ' + val.name;
+            a_clone.classList.add('pokemon');
+            div_clone.appendChild(a_clone);
+            div_container.appendChild(div_clone);
+        });
+        body.appendChild(div_container);
+    }
+    function addClick(data) {
+        link = document.getElementsByClassName('pokemon');
+        // var test = link[0].parentNode;
+        Array.prototype.forEach.call(link, function (val, id) {
+            id = Number(id) + 1;
+            val.addEventListener('click', function (e) {
+                e.preventDefault();
+                // var stateObj = {foo: "bar"};
+                history.pushState(data, "page 2", "1.html?id=" + id);
+                destroyChildNode();
+                PokemonById(getJsonFromUrl().id);
+            });
+
+        });
+    }
+    function getJsonFromUrl() {
+        var query = location.search.substr(1);
+        var result = {};
+        query.split("&").forEach(function (part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    }
+
+    function PokemonById(id) {
+        return fetch('https://pokeapi.co/api/v2/pokemon/' + id, {method: 'GET'})
+                .then(function (data) {
+                    return data.json();
+                }).then(function (data) {
+                    pokemonDetail(data);
+                })
+    }
+    function pokemonDetail(data) {
+        var img = data.sprites.front_default;
+
+        var type = [];
+        var id = data.order;
+        var name = data.name;
+        var weight = data.weight;
+        data.types.forEach(function (val) {
+//            console.log(val);
+            type.push(val.type.name);
+        });
+        showDetailPokemon(img, type, id, name, weight);
+
+    }
+    function showDetailPokemon(img_url, type, id, name, weight) {
+        var div = document.createElement('div');
+        var div_container = div.cloneNode(true);
+        var span = document.createElement('span');
+        var img = document.createElement('img');
+        img.src = img_url;
+        img.style.height = '100%';
+        img.style.weight = '100%';
+        var typeValue = div.cloneNode(true);
+        typeValue.cloneNode(span.cloneNode(true));
+        typeValue.innerHTML = '<b>Type: </b>' + type;
+        var idValue = div.cloneNode(true);
+        idValue.cloneNode(span.cloneNode(true));
+        idValue.innerHTML = '<b>#: </b>' + id;
+        var nameValue = div.cloneNode(true);
+        nameValue.cloneNode(span.cloneNode(true));
+        nameValue.innerHTML = '<b>Name: </b>' + name;
+        var weightValue = div.cloneNode(true);
+        weightValue.cloneNode(span.cloneNode(true));
+        weightValue.innerHTML = '<b>Weight: </b>' + weight;
+        div_container.appendChild(img);
+        div_container.appendChild(idValue);
+        div_container.appendChild(nameValue);
+        div_container.appendChild(typeValue);
+        div_container.appendChild(weightValue);
+        body.appendChild(div_container);
+        body.appendChild(div_container);
+    }
+    function destroyChildNode(){
+        while (body.firstChild) {
+            body.removeChild(body.firstChild);
+        }
+    }
+</script>
+</body>
+</html>
